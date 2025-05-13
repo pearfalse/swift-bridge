@@ -1148,13 +1148,13 @@ impl BridgedType {
                     match &ptr.pointee {
                         Pointee::BuiltIn(ty) => {
                             format!(
-                                "Unsafe{}Pointer<{}>",
+                                "Unsafe{}Pointer<{}>?",
                                 maybe_mutable,
                                 ty.to_swift_type(type_pos, types, swift_bridge_path)
                             )
                         }
                         Pointee::Void(_) => {
-                            format!("Unsafe{}RawPointer", maybe_mutable)
+                            format!("Unsafe{}RawPointer?", maybe_mutable)
                         }
                     }
                 }
@@ -1559,16 +1559,16 @@ impl BridgedType {
                         PointerKind::Const => match type_pos {
                             TypePosition::FnArg(func_host_lang, _) => {
                                 if func_host_lang.is_rust() {
-                                    format!("UnsafeRawPointer({}!)", expression)
+                                    format!("UnsafeRawPointer({})", expression)
                                 } else {
                                     expression.to_string()
                                 }
                             }
                             TypePosition::FnReturn(_) => {
-                                format!("UnsafeRawPointer({}!)", expression)
+                                format!("UnsafeRawPointer({})", expression)
                             }
                             TypePosition::SharedStructField => {
-                                format!("UnsafeRawPointer({}!)", expression)
+                                format!("UnsafeRawPointer({})", expression)
                             }
                             TypePosition::SwiftCallsRustAsyncOnCompleteReturnTy => {
                                 unimplemented!()

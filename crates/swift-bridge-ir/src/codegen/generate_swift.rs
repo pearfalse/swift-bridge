@@ -920,7 +920,7 @@ public func foo() -> RustString {
         let generated = module.generate_swift(&CodegenConfig::no_features_enabled());
 
         let expected = r#"
-func void_pointer(_ arg1: UnsafeRawPointer) {
+func void_pointer(_ arg1: UnsafeRawPointer?) {
     __swift_bridge__$void_pointer(UnsafeMutableRawPointer(mutating: arg1))
 }
 "#;
@@ -943,8 +943,8 @@ func void_pointer(_ arg1: UnsafeRawPointer) {
         let generated = module.generate_swift(&CodegenConfig::no_features_enabled());
 
         let expected = r#"
-func void_pointer() -> UnsafeRawPointer {
-    UnsafeRawPointer(__swift_bridge__$void_pointer()!)
+func void_pointer() -> UnsafeRawPointer? {
+    UnsafeRawPointer(__swift_bridge__$void_pointer())
 }
 "#;
 
@@ -967,7 +967,7 @@ func void_pointer() -> UnsafeRawPointer {
 
         let expected = r#"
 @_cdecl("__swift_bridge__$void_pointer")
-func __swift_bridge__void_pointer (_ arg: UnsafeRawPointer) {
+func __swift_bridge__void_pointer (_ arg: UnsafeRawPointer?) {
     void_pointer(arg: arg)
 }
 "#;
