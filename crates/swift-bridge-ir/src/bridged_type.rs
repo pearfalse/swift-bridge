@@ -860,6 +860,20 @@ impl BridgedType {
         } else if tokens.starts_with("(") {
             let tuple: Type = syn::parse2(TokenStream::from_str(&tokens).unwrap()).unwrap();
             return BridgedType::new_with_type(&tuple, types);
+        } else if tokens.starts_with("NonNull < ") {
+            let inner = &tokens[.. tokens.rfind(">")?];
+            let inner = inner.trim_start_matches("NonNull < ");
+            let inner: Type = syn::parse2(TokenStream::from_str(inner).unwrap()).unwrap();
+
+            let pointee = if let Some(ty) = BridgedType::new_with_type(&inner, types) {
+                Pointee::BuiltIn(Box::new(ty))
+            } else {
+                Pointee::Void(inner)
+            };
+            return Some(BridgedType::StdLib(StdLibType::Pointer(BuiltInPointer {
+                kind: PointerKind::NonNull,
+                pointee,
+            })));
         }
 
         let ty = match tokens {

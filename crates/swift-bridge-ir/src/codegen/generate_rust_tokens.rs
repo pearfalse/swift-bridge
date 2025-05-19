@@ -1058,6 +1058,105 @@ mod tests {
         assert_tokens_contain(&parse_ok(start).to_token_stream(), &expected);
     }
 
+    /// Verify that extern "Rust" functions can accept and return non-null pointers to built-in types.
+    #[test]
+    fn extern_rust_non_null_built_in_pointers() {
+        let start = quote! {
+            mod foo {
+                extern "Rust" {
+                    fn non_null_pointer (arg: NonNull<i32>) -> NonNull<i32>;
+                }
+            }
+        };
+        let expected = quote! {
+            #[export_name = "__swift_bridge__$non_null_pointer"]
+            pub extern "C" fn __swift_bridge__non_null_pointer (
+                arg: ::core::ptr::NonNull<i32>
+            ) -> ::core::ptr::NonNull<i32> {
+                super::non_null_pointer(arg)
+            }
+        };
+
+        assert_to_extern_c_function_tokens(start, &expected);
+    }
+
+    /// Verify that extern "Rust" functions can accept and return non-null void pointers.
+    #[test]
+    fn extern_rust_non_null_void_pointers() {
+        let start = quote! {
+            mod foo {
+                extern "Rust" {
+                    fn non_null_pointer (arg: NonNull<c_void>) -> NonNull<c_void>;
+                }
+            }
+        };
+        let expected = quote! {
+            #[export_name = "__swift_bridge__$non_null_pointer"]
+            pub extern "C" fn __swift_bridge__non_null_pointer (
+                arg: ::core::ptr::NonNull<super::c_void>
+            ) -> ::core::ptr::NonNull<super::c_void> {
+                super::non_null_pointer(arg)
+            }
+        };
+
+        assert_to_extern_c_function_tokens(start, &expected);
+    }
+
+
+    /// Verify that extern "Swift" functions can accept and return pointers to built-in types.
+    #[test]
+    fn extern_swift_non_null_built_in_pointers() {
+        let start = quote! {
+            mod foo {
+                extern "Swift" {
+                    fn non_null_pointer (arg: NonNull<i32>) -> NonNull<i32>;
+                }
+            }
+        };
+        let expected = quote! {
+            pub fn non_null_pointer (arg: ::core::ptr::NonNull<i32>) -> ::core::ptr::NonNull<i32> {
+                unsafe { __swift_bridge__non_null_pointer(arg) }
+            }
+
+            #[allow(improper_ctypes)]
+            extern "C" {
+                #[link_name = "__swift_bridge__$non_null_pointer"]
+                fn __swift_bridge__non_null_pointer (
+                    arg: ::core::ptr::NonNull<i32>
+                ) -> ::core::ptr::NonNull<i32>;
+            }
+        };
+
+        assert_tokens_contain(&parse_ok(start).to_token_stream(), &expected);
+    }
+
+    /// Verify that extern "Swift" functions can accept and return non-null void pointers.
+    #[test]
+    fn extern_swift_non_null_void_pointers() {
+        let start = quote! {
+            mod foo {
+                extern "Swift" {
+                    fn non_null_void_pointer (arg: NonNull<c_void>) -> NonNull<c_void>;
+                }
+            }
+        };
+        let expected = quote! {
+            pub fn non_null_void_pointer (arg: ::core::ptr::NonNull<super::c_void>) -> ::core::ptr::NonNull<super::c_void> {
+                unsafe { __swift_bridge__non_null_void_pointer(arg) }
+            }
+
+            #[allow(improper_ctypes)]
+            extern "C" {
+                #[link_name = "__swift_bridge__$non_null_void_pointer"]
+                fn __swift_bridge__non_null_void_pointer (
+                    arg: ::core::ptr::NonNull<super::c_void>
+                ) -> ::core::ptr::NonNull<super::c_void>;
+            }
+        };
+
+        assert_tokens_contain(&parse_ok(start).to_token_stream(), &expected);
+    }
+
     /// Verify that we can take an owned self in a method.
     #[test]
     fn associated_method_drops_owned_self() {

@@ -26,9 +26,11 @@ pub(crate) enum PointerKind {
 
 /// The target of an `*const` or `*mut` pointer.
 pub(crate) enum Pointee {
+    /// A transparent or primitive type.
     BuiltIn(Box<BridgedType>),
-    /// `*const SomeType`
-    ///         ^^^^^^^^ This is the Pointee
+    // `*const SomeType`
+    //         ^^^^^^^^ This is the Pointee
+    /// A type opaque to the other side of the FFI boundary.
     Void(Type),
 }
 
