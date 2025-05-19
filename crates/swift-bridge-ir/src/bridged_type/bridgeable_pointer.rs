@@ -16,8 +16,12 @@ pub(crate) struct BuiltInPointer {
 
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub(crate) enum PointerKind {
+    /// `*const T`
     Const,
+    /// `*mut T`
     Mut,
+    /// `core::ptr::NonNull<T>`
+    NonNull,
 }
 
 /// The target of an `*const` or `*mut` pointer.
@@ -64,15 +68,12 @@ impl BridgeableType for BuiltInPointer {
     fn to_rust_type_path(&self, types: &TypeDeclarations) -> TokenStream {
         match &self.pointee {
             Pointee::BuiltIn(ty) => {
-                let pointer_kind = self.kind.to_ffi_compatible_rust_type();
                 let ty = ty.to_rust_type_path(types);
-                quote! { #pointer_kind #ty}
+                self.kind.to_ffi_compatible_rust_type(ty)
             }
             Pointee::Void(_ty) => {
-                let pointer_kind = self.kind.to_ffi_compatible_rust_type();
                 let pointee = self.pointee.to_rust_type_path(types);
-
-                quote! { #pointer_kind super:: #pointee }
+                self.kind.to_ffi_compatible_rust_type(quote! { super:: #pointee })
             }
         }
     }
@@ -99,16 +100,11 @@ impl BridgeableType for BuiltInPointer {
         swift_bridge_path: &Path,
         types: &TypeDeclarations,
     ) -> TokenStream {
-        let kind = self.kind.to_ffi_compatible_rust_type();
 
-        let ty = match &self.pointee {
+        self.kind.to_ffi_compatible_rust_type(match &self.pointee {
             Pointee::BuiltIn(ty) => ty.to_ffi_compatible_rust_type(swift_bridge_path, types),
-            Pointee::Void(ty) => {
-                quote! { super::#ty }
-            }
-        };
-
-        quote! { #kind #ty}
+            Pointee::Void(ty) => quote! { super:: #ty }
+        })
     }
 
     fn to_ffi_compatible_option_rust_type(
@@ -268,13 +264,16 @@ impl BridgeableType for BuiltInPointer {
 }
 
 impl PointerKind {
-    fn to_ffi_compatible_rust_type(&self) -> TokenStream {
+    fn to_ffi_compatible_rust_type(&self, pointee_type: TokenStream) -> TokenStream {
         match self {
             PointerKind::Const => {
-                quote! { *const }
+                quote! { *const #pointee_type }
             }
             PointerKind::Mut => {
-                quote! { *mut }
+                quote! { *mut #pointee_type }
+            },
+            PointerKind::NonNull => {
+                quote! { ::core::ptr::NonNull<#pointee_type> }
             }
         }
     }

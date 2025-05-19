@@ -1142,7 +1142,7 @@ impl BridgedType {
                 StdLibType::Pointer(ptr) => {
                     let maybe_mutable = match ptr.kind {
                         PointerKind::Const => "",
-                        PointerKind::Mut => "Mutable",
+                        PointerKind::Mut | PointerKind::NonNull => "Mutable",
                     };
 
                     match &ptr.pointee {
@@ -1290,7 +1290,7 @@ impl BridgedType {
                 StdLibType::Pointer(ptr) => {
                     let maybe_const = match ptr.kind {
                         PointerKind::Const => " const ",
-                        PointerKind::Mut => "",
+                        PointerKind::Mut | PointerKind::NonNull => "",
                     };
 
                     match &ptr.pointee {
@@ -1575,7 +1575,7 @@ impl BridgedType {
                             }
                             TypePosition::ThrowingInit(_) => unimplemented!(),
                         },
-                        PointerKind::Mut => expression.to_string(),
+                        PointerKind::Mut | PointerKind::NonNull => expression.to_string(),
                     },
                 },
                 StdLibType::RefSlice(ty) => {
