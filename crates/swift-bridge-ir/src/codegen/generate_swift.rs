@@ -928,7 +928,7 @@ func void_pointer(_ arg1: UnsafeRawPointer?) {
         assert_trimmed_generated_contains_trimmed_expected(&generated, &expected);
     }
 
-    /// Verify that we generate the corresponding Swift for extern "Rust" functions that returns
+    /// Verify that we generate the corresponding Swift for extern "Rust" functions that return
     /// a *const void pointer.
     #[test]
     fn extern_rust_return_const_void_pointer() {
@@ -945,6 +945,52 @@ func void_pointer(_ arg1: UnsafeRawPointer?) {
         let expected = r#"
 func void_pointer() -> UnsafeRawPointer? {
     UnsafeRawPointer(__swift_bridge__$void_pointer())
+}
+"#;
+
+        assert_trimmed_generated_contains_trimmed_expected(&generated, &expected);
+    }
+
+    /// Verify that we generate the corresponding Swift for extern "Rust" functions that accept
+    /// a non-null void pointer.
+    #[test]
+    fn extern_rust_non_null_void_pointer_argument() {
+        let start = quote! {
+            mod foo {
+                extern "Rust" {
+                    fn void_pointer (arg1: NonNull<c_void>);
+                }
+            }
+        };
+        let module: SwiftBridgeModule = syn::parse2(start).unwrap();
+        let generated = module.generate_swift(&CodegenConfig::no_features_enabled());
+
+        let expected = r#"
+func void_pointer(_ arg1: UnsafeMutableRawPointer) {
+    __swift_bridge__$void_pointer(arg1)
+}
+"#;
+
+        assert_trimmed_generated_contains_trimmed_expected(&generated, &expected);
+    }
+
+    /// Verify that we generate the corresponding Swift for extern "Rust" functions that return
+    /// a non-nul void pointer.
+    #[test]
+    fn extern_rust_return_non_null_void_pointer() {
+        let start = quote! {
+            mod foo {
+                extern "Rust" {
+                    fn void_pointer () -> NonNull<c_void>;
+                }
+            }
+        };
+        let module: SwiftBridgeModule = syn::parse2(start).unwrap();
+        let generated = module.generate_swift(&CodegenConfig::no_features_enabled());
+
+        let expected = r#"
+func void_pointer() -> UnsafeMutableRawPointer {
+    __swift_bridge__$void_pointer()
 }
 "#;
 

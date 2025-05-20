@@ -1159,16 +1159,22 @@ impl BridgedType {
                         PointerKind::Mut | PointerKind::NonNull => "Mutable",
                     };
 
+                    let nullable = match ptr.kind {
+                        PointerKind::NonNull => "",
+                        _ => "?",
+                    };
+
                     match &ptr.pointee {
                         Pointee::BuiltIn(ty) => {
                             format!(
-                                "Unsafe{}Pointer<{}>?",
+                                "Unsafe{}Pointer<{}>{}",
                                 maybe_mutable,
-                                ty.to_swift_type(type_pos, types, swift_bridge_path)
+                                ty.to_swift_type(type_pos, types, swift_bridge_path),
+                                nullable,
                             )
                         }
                         Pointee::Void(_) => {
-                            format!("Unsafe{}RawPointer?", maybe_mutable)
+                            format!("Unsafe{}RawPointer{}", maybe_mutable, nullable)
                         }
                     }
                 }
