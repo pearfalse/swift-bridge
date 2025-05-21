@@ -8,9 +8,11 @@ mod ffi {
     extern "Rust" {
         fn rust_echo_const_c_void(ptr: *const c_void) -> *const c_void;
         fn rust_echo_mut_c_void(ptr: *mut c_void) -> *mut c_void;
+        fn rust_echo_non_null_c_void(ptr: NonNull<c_void>) -> NonNull<c_void>;
 
         fn rust_echo_const_u8(ptr: *const u8) -> *const u8;
         fn rust_echo_mut_u8(ptr: *mut u8) -> *mut u8;
+        fn rust_echo_non_null_u8(ptr: NonNull<u8>) -> NonNull<u8>;
 
         fn rust_run_opaque_pointer_tests();
         fn rust_run_u8_pointer_tests();
@@ -73,6 +75,10 @@ fn rust_echo_mut_c_void(ptr: *mut c_void) -> *mut c_void {
     ptr
 }
 
+fn rust_echo_non_null_c_void(ptr: NonNull<c_void>) -> NonNull<c_void> {
+    ptr
+}
+
 fn rust_echo_const_u8(ptr: *const u8) -> *const u8 {
     ptr
 }
@@ -80,3 +86,8 @@ fn rust_echo_const_u8(ptr: *const u8) -> *const u8 {
 fn rust_echo_mut_u8(ptr: *mut u8) -> *mut u8 {
     ptr
 }
+
+fn rust_echo_non_null_u8(ptr: NonNull<u8>) -> NonNull<u8> {
+    ptr
+}
+

@@ -25,6 +25,6 @@ func swift_echo_mut_u8(ptr: UnsafeMutablePointer<UInt8>?) -> UnsafeMutablePointe
 func swift_echo_non_null_u8(ptr: UnsafeMutablePointer<UInt8>) -> UnsafeMutablePointer<UInt8> {
     ptr
 }
-func swift_echo_non_null_c_void(ptr: UnsafeMutableRawPointer>) -> UnsafeMutableRawPointer> {
+func swift_echo_non_null_c_void(ptr: UnsafeMutableRawPointer) -> UnsafeMutableRawPointer {
     ptr
 }

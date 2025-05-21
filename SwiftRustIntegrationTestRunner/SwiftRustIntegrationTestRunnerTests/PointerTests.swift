@@ -19,6 +19,7 @@ class PointerTests: XCTestCase {
 
     func testSwiftCallRustCvoid() throws {
         let value = [1, 2, 3]
+        var u8 = UInt8(4)
         
         let pointer = UnsafeRawPointer(value)
         let pointer_mut = UnsafeMutableRawPointer(mutating: value)
@@ -30,11 +31,16 @@ class PointerTests: XCTestCase {
         let pointer_mut_copy = rust_echo_mut_c_void(pointer_mut)
         let pointer_mut_nil_copy = rust_echo_mut_c_void(pointer_mut_nil)
 
+        let pointer_non_null = UnsafeMutableRawPointer(&u8)
+        let pointer_non_null_copy = rust_echo_non_null_c_void(pointer_non_null)
+
+        // TODO: we should run the u8 variants here too
         
         XCTAssertEqual(pointer, pointer_copy)
         XCTAssertEqual(pointer_nil, pointer_nil_copy)
         XCTAssertEqual(pointer_mut, pointer_mut_copy)
         XCTAssertEqual(pointer_mut_nil, pointer_mut_nil_copy)
+        XCTAssertEqual(pointer_non_null, pointer_non_null_copy)
     }
     
     func testRustCallSwiftCvoid() throws {
