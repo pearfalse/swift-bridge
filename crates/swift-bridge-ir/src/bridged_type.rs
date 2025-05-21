@@ -1065,6 +1065,15 @@ impl BridgedType {
                         StdLibType::Bool => {
                             quote! { #swift_bridge_path::option::OptionBool }
                         }
+                        StdLibType::Pointer(p) if p.kind == PointerKind::NonNull => {
+                            let pointee = match &p.pointee {
+                                Pointee::BuiltIn(ty)
+                                    => ty.to_ffi_compatible_rust_type(swift_bridge_path, types),
+                                Pointee::Void(ty)
+                                    => quote! { super:: #ty }
+                            };
+                            quote! { *mut #pointee }
+                        }
                         StdLibType::Pointer(_) => {
                             todo!("Option<*const T> and Option<*mut T> are not yet supported")
                         }
@@ -1324,7 +1333,7 @@ impl BridgedType {
                 StdLibType::Str => "struct RustStr".to_string(),
                 StdLibType::Null => "void".to_string(),
                 StdLibType::Vec(_) => "void*".to_string(),
-                StdLibType::Option(opt) => opt.to_c(),
+                StdLibType::Option(opt) => opt.to_c(types),
                 StdLibType::Result(result) => result.to_c(types).to_string(),
                 StdLibType::BoxedFnOnce(_) => "void*".to_string(),
                 StdLibType::Tuple(tuple) => tuple.to_c_type(types),

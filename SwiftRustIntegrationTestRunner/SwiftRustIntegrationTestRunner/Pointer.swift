@@ -28,3 +28,12 @@ func swift_echo_non_null_u8(ptr: UnsafeMutablePointer<UInt8>) -> UnsafeMutablePo
 func swift_echo_non_null_c_void(ptr: UnsafeMutableRawPointer) -> UnsafeMutableRawPointer {
     ptr
 }
+
+// These have the same Swift-side signature as `*_mut_*` above, but show up differently on the Rust side
+func swift_echo_optional_non_null_u8(ptr: UnsafeMutablePointer<UInt8>?) -> UnsafeMutablePointer<UInt8>? {
+    ptr
+}
+func swift_echo_optional_non_null_c_void(ptr: UnsafeMutableRawPointer?) -> UnsafeMutableRawPointer? {
+    ptr
+}
+

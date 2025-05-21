@@ -1,4 +1,4 @@
-use crate::bridged_type::bridgeable_pointer::PointerKind;
+use crate::bridged_type::bridgeable_pointer::{Pointee, PointerKind};
 use crate::bridged_type::built_in_primitive::BuiltInPrimitive;
 use crate::bridged_type::{BridgedType, CustomBridgedType, SharedType, StdLibType, TypePosition};
 use crate::parse::TypeDeclarations;
@@ -76,6 +76,15 @@ impl BridgedOption {
                 }
                 StdLibType::Bool => {
                     option_rust_primitive_to_ffi_primitive(quote! {OptionBool}, quote! {false})
+                }
+                StdLibType::Pointer(p) if p.kind == PointerKind::NonNull => {
+                    quote! {
+                        if let Some(p) = #expression {
+                            p.as_ptr()
+                        } else {
+                            ::core::ptr::null_mut()
+                        }
+                    }
                 }
                 StdLibType::Pointer(_) => {
                     todo!("Support Option<*const T> and Option<*mut T>")
@@ -160,6 +169,9 @@ impl BridgedOption {
                             }
                         }
                     }
+                }
+                StdLibType::Pointer(p) if p.kind == PointerKind::NonNull => {
+                    quote! { ::core::ptr::NonNull::new(#expression) }
                 }
                 StdLibType::Pointer(_) => {
                     todo!("Option<*const T> and Option<*mut T> are not yet supported.")
@@ -313,6 +325,9 @@ impl BridgedOption {
                 | StdLibType::Bool => {
                     format!("{expression}.intoFfiRepr()")
                 }
+                StdLibType::Pointer(ref p) if p.kind == PointerKind::NonNull => {
+                    expression.to_string() // no change needed
+                }
                 StdLibType::Pointer(_) => {
                     todo!("Option<*const T> and Option<*mut T> are not yet supported")
                 }
@@ -445,6 +460,15 @@ impl BridgedOption {
                     .unwrap()
                     .to_option_ffi_repr_name()
                     .to_string(),
+                StdLibType::Pointer(p) if p.kind == PointerKind::NonNull => {
+                    match &p.pointee {
+                        Pointee::BuiltIn(b) => format!(
+                            "UnsafeMutablePointer<{}>?",
+                            b.to_swift_type(type_pos, types, swift_bridge_path),
+                        ),
+                        Pointee::Void(_) => "UnsafeMutableRawPointer?".to_string(),
+                    }
+                }
                 StdLibType::Pointer(_) => {
                     todo!()
                 }
@@ -479,7 +503,7 @@ impl BridgedOption {
 }
 
 impl BridgedOption {
-    pub fn to_c(&self) -> String {
+    pub fn to_c(&self, types: &TypeDeclarations) -> String {
         match self.ty.deref() {
             BridgedType::Bridgeable(b) => b.to_ffi_compatible_option_c_type(),
             BridgedType::StdLib(stdlib_type) => match stdlib_type {
@@ -499,6 +523,12 @@ impl BridgedOption {
                 StdLibType::F32 => "struct __private__OptionF32".to_string(),
                 StdLibType::F64 => "struct __private__OptionF64".to_string(),
                 StdLibType::Bool => "struct __private__OptionBool".to_string(),
+                StdLibType::Pointer(ref p) if p.kind == PointerKind::NonNull => {
+                    match &p.pointee {
+                        Pointee::BuiltIn(b) => format!("{}*", b.to_c(types)),
+                        Pointee::Void(_) => "void*".to_string(),
+                    }
+                }
                 StdLibType::Pointer(_) => {
                     todo!("Option<*const T> and Option<*mut T> are not yet supported")
                 }

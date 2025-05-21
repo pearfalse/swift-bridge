@@ -928,6 +928,29 @@ func void_pointer(_ arg1: UnsafeRawPointer?) {
         assert_trimmed_generated_contains_trimmed_expected(&generated, &expected);
     }
 
+    /// Verify that we generate the corresponding Swift for extern "Rust" functions that accept
+    /// a *const void pointer, even when expressed as Option<NonNull<T>>.
+    #[test]
+    fn extern_rust_optional_non_null_void_pointer_argument() {
+        let start = quote! {
+            mod foo {
+                extern "Rust" {
+                    fn void_pointer (arg1: Option<NonNull<c_void>>);
+                }
+            }
+        };
+        let module: SwiftBridgeModule = syn::parse2(start).unwrap();
+        let generated = module.generate_swift(&CodegenConfig::no_features_enabled());
+
+        let expected = r#"
+func void_pointer(_ arg1: Optional<UnsafeMutableRawPointer>) {
+    __swift_bridge__$void_pointer(arg1)
+}
+"#;
+
+        assert_trimmed_generated_contains_trimmed_expected(&generated, &expected);
+    }
+
     /// Verify that we generate the corresponding Swift for extern "Rust" functions that return
     /// a *const void pointer.
     #[test]
@@ -952,7 +975,7 @@ func void_pointer() -> UnsafeRawPointer? {
     }
 
     /// Verify that we generate the corresponding Swift for extern "Rust" functions that
-    /// return a *const void pointer, even when expressed as Option<NonNull<c_void>>.
+    /// return a *const void pointer, even when expressed as Option<NonNull<T>>.
     #[test]
     fn extern_rust_return_option_non_null_void_pointer() {
         let start = quote! {

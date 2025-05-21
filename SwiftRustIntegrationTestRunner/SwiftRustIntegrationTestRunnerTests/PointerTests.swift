@@ -29,7 +29,9 @@ class PointerTests: XCTestCase {
         let pointer_copy = rust_echo_const_c_void(pointer)
         let pointer_nil_copy = rust_echo_const_c_void(pointer_nil)
         let pointer_mut_copy = rust_echo_mut_c_void(pointer_mut)
+        let pointer_mut_copy2 = rust_echo_optional_non_null_c_void(pointer_mut)
         let pointer_mut_nil_copy = rust_echo_mut_c_void(pointer_mut_nil)
+        let pointer_mut_nil_copy2 = rust_echo_optional_non_null_c_void(pointer_mut_nil)
 
         let pointer_non_null = UnsafeMutableRawPointer(&u8)
         let pointer_non_null_copy = rust_echo_non_null_c_void(pointer_non_null)
@@ -39,7 +41,9 @@ class PointerTests: XCTestCase {
         XCTAssertEqual(pointer, pointer_copy)
         XCTAssertEqual(pointer_nil, pointer_nil_copy)
         XCTAssertEqual(pointer_mut, pointer_mut_copy)
+        XCTAssertEqual(pointer_mut, pointer_mut_copy2)
         XCTAssertEqual(pointer_mut_nil, pointer_mut_nil_copy)
+        XCTAssertEqual(pointer_mut_nil, pointer_mut_nil_copy2)
         XCTAssertEqual(pointer_non_null, pointer_non_null_copy)
     }
     
