@@ -1,3 +1,4 @@
+use crate::bridged_type::bridgeable_pointer::PointerKind;
 use crate::bridged_type::built_in_primitive::BuiltInPrimitive;
 use crate::bridged_type::{BridgedType, CustomBridgedType, SharedType, StdLibType, TypePosition};
 use crate::parse::TypeDeclarations;
@@ -208,7 +209,12 @@ impl BridgedOption {
         }
     }
 
-    pub(super) fn convert_ffi_expression_to_swift_type(&self, expression: &str) -> String {
+    pub(super) fn convert_ffi_expression_to_swift_type(&self,
+        expression: &str,
+        type_pos: TypePosition,
+        types: &TypeDeclarations,
+        swift_bridge_path: &Path,
+    ) -> String {
         match self.ty.deref() {
             BridgedType::Bridgeable(b) => b.convert_ffi_option_expression_to_swift_type(expression),
             BridgedType::StdLib(stdlib_type) => match stdlib_type {
@@ -229,6 +235,16 @@ impl BridgedOption {
                 | StdLibType::F64
                 | StdLibType::Bool => {
                     format!("{expression}.intoSwiftRepr()")
+                }
+                StdLibType::Pointer(ptr) if ptr.kind == PointerKind::NonNull => {
+                    // Option<NonNull<T>> is effectively the same as *mut T
+                    match ptr.pointee {
+                        super::bridgeable_pointer::Pointee::BuiltIn(ref b)
+                            => b.convert_ffi_value_to_swift_value(
+                                expression, type_pos, types, swift_bridge_path),
+                        super::bridgeable_pointer::Pointee::Void(_)
+                            => format!("UnsafeMutableRawPointer({expression})"),
+                    }
                 }
                 StdLibType::Pointer(_) => {
                     todo!("Support Option<*const T> and Option<*mut T>")

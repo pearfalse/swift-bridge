@@ -1609,7 +1609,12 @@ impl BridgedType {
                 StdLibType::Vec(_ty) => {
                     format!("RustVec(ptr: {})", expression)
                 }
-                StdLibType::Option(opt) => opt.convert_ffi_expression_to_swift_type(expression),
+                StdLibType::Option(opt) => opt.convert_ffi_expression_to_swift_type(
+                    expression,
+                    type_pos,
+                    types,
+                    swift_bridge_path,
+                ),
                 StdLibType::Result(result) => result.convert_ffi_value_to_swift_value(
                     expression,
                     type_pos,
